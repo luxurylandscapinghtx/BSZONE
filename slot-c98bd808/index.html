@@ -21,6 +21,9 @@
     --r-rare: #6eaaf0;
     --r-epic: #bb8cf6;
     --r-legend: #f2c45a;
+    --m-cute: #f2a6c0;
+    --m-chaos: #9b8cf6;
+    --m-spice: #ef6a52;
     --font-display: "Pirata One", "UnifrakturCook", Georgia, serif;
     --font-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -58,6 +61,14 @@
   }
   .slot.filled { border-color: var(--gold); animation: pop .25s ease-out; }
   @keyframes pop { from { transform: scale(.7); } to { transform: scale(1); } }
+
+  .mute {
+    position: fixed; top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(8px + env(safe-area-inset-right, 0px));
+    z-index: 60; width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel); color: var(--bone);
+    font-size: 18px; display: grid; place-items: center; box-shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+  .mute:hover { border-color: var(--gold); }
 
   .panel {
     background: linear-gradient(180deg, var(--panel-2), var(--panel));
@@ -113,6 +124,17 @@
     font-family: var(--font-mono); font-size: 13px; color: var(--rose);
     min-height: 1.5em;
   }
+  .quip::after { content: "▋"; opacity: .0; }
+  .quip.typing::after { opacity: .7; animation: blink .8s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* score meters */
+  .scores { display: flex; flex-direction: column; gap: 9px; }
+  .score { display: flex; flex-direction: column; gap: 3px; }
+  .score span { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .sbar { height: 8px; background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+  .sbar i { display: block; height: 100%; border-radius: 99px; transition: width .45s cubic-bezier(.2,.9,.3,1); }
+
   .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .opts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .opt {
@@ -121,10 +143,20 @@
     min-width: 0; transition: border-color .15s, transform .12s, background .15s;
   }
   .opt:hover { border-color: var(--gold); transform: translateY(-2px); background: rgba(230,180,80,.06); }
+  .opt:active { transform: scale(.97); }
   .opt .e { font-size: 26px; line-height: 1; }
   .opt .l { font-weight: 700; font-size: 16px; }
   .opt .d { color: var(--muted); font-size: 13px; line-height: 1.4; }
   .opt[aria-pressed="true"] { border-color: var(--gold); background: rgba(230,180,80,.1); }
+
+  /* loot box */
+  .chest { font-size: 86px; line-height: 1; animation: shake .5s ease-in-out infinite; }
+  @keyframes shake {
+    0%, 100% { transform: rotate(-9deg) scale(1); }
+    25% { transform: rotate(9deg) scale(1.08); }
+    50% { transform: rotate(-6deg) scale(1.04); }
+    75% { transform: rotate(6deg) scale(1.08); }
+  }
 
   /* forge */
   .names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -142,10 +174,12 @@
   .name[data-r="epic"] .r { color: var(--r-epic); }
   .name[data-r="legendary"] { border-color: var(--r-legend); background: linear-gradient(135deg, rgba(242,196,90,.18), rgba(0,0,0,.25)); }
   .name[data-r="legendary"] .r { color: var(--r-legend); }
+  .name[data-r="secret"] { border-color: var(--rose); background: linear-gradient(135deg, rgba(224,69,123,.2), rgba(0,0,0,.25)); }
+  .name[data-r="secret"] .r { color: var(--rose); }
   .name:hover { border-color: var(--bone); }
   .name[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold) inset; }
-  .name.in { animation: drop .35s ease-out both; }
-  @keyframes drop { from { opacity: .2; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .name.in { animation: drop .4s cubic-bezier(.2,.9,.3,1.2) both; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-10px) scale(.92); } to { opacity: 1; transform: none; } }
 
   .droprate { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
   .banner {
@@ -177,7 +211,7 @@
   /* done */
   .card {
     background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+    padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
   }
   .avatar {
     width: 92px; height: 92px; border-radius: 50%;
@@ -192,6 +226,7 @@
   }
   .sheet dt { color: var(--muted); font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; padding-top: 2px; }
   .sheet dd { margin: 0; }
+  .card .scores { width: 100%; padding-top: 14px; border-top: 1px solid var(--line); text-align: left; }
   .notif {
     display: flex; gap: 12px; align-items: flex-start;
     background: rgba(239,230,218,.08); border: 1px solid var(--line); border-radius: 16px;
@@ -221,6 +256,8 @@
   }
 </style>
 
+<button class="mute" id="mute" aria-label="Toggle sound">🔇</button>
+
 <div class="wrap">
   <div class="bar">
     <div class="tag">Contact slot <b>1 / 1</b> · unlocked</div>
@@ -234,7 +271,7 @@
       <h1>You've unlocked a <em>contact slot.</em></h1>
       <p class="lede">I want to save your number. Small problem: there's already a Vanessa in my phone, and two contacts with the same name is how bugs happen.</p>
       <p class="muted">So you get to forge your own name. Twelve quick questions, then the game rolls you some name drops. Pick one, reroll, or write your own. Whatever you choose is exactly what shows up when you text me.</p>
-      <p class="muted">The last question sets the spice level, so the names only get as cheeky as you want them to.</p>
+      <p class="muted">The last question sets the spice level, so the names only get as cheeky as you want them to. Tap 🔇 up top for sound.</p>
       <div class="stats">
         <div class="stat"><span>Questions</span><strong>12</strong></div>
         <div class="stat"><span>Rerolls</span><strong>Unlimited</strong></div>
@@ -265,6 +302,121 @@
       }).catch(() => {});
     } catch (e) {}
   }
+  // ---- interactive extras: sound, particle bursts, score meters ----
+  const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let muted = true;
+  try { if (localStorage.getItem("muted") === "0") muted = false; } catch (e) {}
+  let AC = null;
+  function beep(freq, dur, type, gain) {
+    if (muted || RM) return;
+    try {
+      AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = type || "sine"; o.frequency.value = freq;
+      o.connect(g); g.connect(AC.destination);
+      const t = AC.currentTime;
+      g.gain.setValueAtTime(gain || 0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.15));
+      o.start(t); o.stop(t + (dur || 0.15));
+    } catch (e) {}
+  }
+  const S = {
+    click: () => { beep(520, 0.08, "triangle", 0.04); setTimeout(() => beep(780, 0.06, "triangle", 0.03), 40); },
+    pick:  () => { beep(660, 0.1, "sine", 0.05); setTimeout(() => beep(990, 0.12, "sine", 0.04), 70); },
+    reroll:() => { beep(240, 0.25, "sawtooth", 0.03); },
+    rare:  () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.18, "triangle", 0.05), i * 90)),
+    win:   () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => beep(f, 0.26, "triangle", 0.05), i * 110)),
+  };
+
+  // particle burst on a shared full-screen canvas
+  const PARTS = ["🖤", "⚔️", "💀", "🔥", "💎", "🌹"];
+  let cv, cx, parts = [], raf = 0;
+  function ensureCanvas() {
+    if (cv) return;
+    cv = document.createElement("canvas");
+    cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50";
+    document.body.appendChild(cv);
+    cx = cv.getContext("2d");
+    const fit = () => { cv.width = innerWidth; cv.height = innerHeight; };
+    fit(); addEventListener("resize", fit);
+  }
+  function burst(x, y, n, glyphs) {
+    if (RM) return;
+    ensureCanvas();
+    glyphs = glyphs || PARTS;
+    for (let i = 0; i < (n || 18); i++) {
+      const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 6;
+      parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3,
+        g: glyphs[Math.floor(Math.random() * glyphs.length)],
+        sz: 14 + Math.random() * 16, life: 1, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3 });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    parts = parts.filter(p => p.life > 0);
+    parts.forEach(p => {
+      p.vy += 0.15; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= 0.012;
+      cx.save(); cx.globalAlpha = Math.max(0, p.life); cx.translate(p.x, p.y); cx.rotate(p.rot);
+      cx.font = p.sz + "px serif"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(p.g, 0, 0); cx.restore();
+    });
+    raf = parts.length ? requestAnimationFrame(tick) : 0;
+  }
+  function burstAt(el, n, glyphs) {
+    const r = el.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, n, glyphs);
+  }
+
+  // typed-out reaction line
+  function typeQuip(el, text) {
+    if (!el) return;
+    if (RM || !text) { el.textContent = text || ""; return; }
+    el.textContent = ""; el.classList.add("typing");
+    let i = 0;
+    (function t() {
+      if (i <= text.length) { el.textContent = text.slice(0, i); i++; setTimeout(t, 16); }
+      else el.classList.remove("typing");
+    })();
+  }
+
+  // ---- scoring (safe defaults for any unmapped option) ----
+  const SCORES = {
+    necro:[0,3,1], rogue:[1,2,2], bard:[1,2,0], druid:[2,0,0], protag:[1,1,0], baddie:[3,1,2],
+    beach:[2,0,1], snow:[1,0,0], both:[1,1,0], inside:[1,2,0],
+    big:[3,0,0], small:[2,3,0], wolf:[1,2,0], cat:[2,2,0],
+    scim:[0,1,0], phat:[2,1,0], pen:[0,2,0], tf:[0,2,0], hearth:[1,1,0], chicken:[1,3,0],
+    jdm:[0,2,0], v8:[0,2,0], truck:[0,2,0], sport:[1,2,1], back:[2,1,2], heated:[2,0,0],
+    fast:[2,1,0], slow:[0,1,0], memes:[1,3,0], voice:[1,2,0],
+    cafe:[1,1,0], croq:[2,1,0], guava:[2,0,0], chef:[2,0,1],
+    rose:[3,0,1], black:[1,2,1], mariposa:[2,1,0], sun:[3,0,0], orchid:[2,0,1], peony:[3,0,0],
+    darkfem:[1,2,2], pinkbaddie:[3,1,2], alt:[1,3,1], beachy:[2,1,2],
+    bike:[1,2,2], bonfire:[2,1,1], salsa:[2,1,2], cook:[2,0,1], game:[2,2,0], tattoo:[1,2,1],
+    words:[3,0,1], time:[3,0,0], touch:[2,0,2], gifts:[2,1,0], acts:[2,0,0], all:[2,1,1],
+  };
+  const METER_MAX = [26, 24, 16];
+  const METERS = [
+    { n: "Cuteness", e: "🥰", c: "var(--m-cute)" },
+    { n: "Chaos", e: "😈", c: "var(--m-chaos)" },
+    { n: "Spice", e: "🔥", c: "var(--m-spice)" },
+  ];
+  function totals() {
+    const t = [0, 0, 0];
+    STEPS.forEach(st => {
+      const o = sel[st.id]; if (!o || st.id === "spice") return;
+      const sc = SCORES[o.k] || [1, 1, 0];
+      t[0] += sc[0]; t[1] += sc[1]; t[2] += sc[2];
+    });
+    if (sel.spice) t[2] += (sel.spice.lvl < 0 ? 2 : sel.spice.lvl) * 3;
+    return t;
+  }
+  function metersHTML() {
+    const t = totals();
+    return `<div class="scores">` + METERS.map((m, i) => {
+      const pct = Math.min(100, Math.round(t[i] / METER_MAX[i] * 100));
+      return `<div class="score"><span>${m.e} ${m.n}</span><div class="sbar"><i style="width:${pct}%;background:${m.c}"></i></div></div>`;
+    }).join("") + `</div>`;
+  }
+
   const STEPS = [
     { id: "cls", q: "Choose your class", sub: "Every adventurer needs a build.", three: true, opts: [
       { k: "necro", e: "💀", l: "Necromancer", d: "Dark humor. Laughs at funerals, respectfully.", title: "the Unholy", adj: "Cursed", quip: "Noted. I'll keep the jokes dark and the lights low." },
@@ -404,13 +556,21 @@
     "Nessa, Mother of Dragons 🐉",
     "Thunderfury Vanessa 🌩️",
   ];
+  // secret unlocks: only certain answer combos trigger these
+  const COMBOS = [
+    { if: s => s.cls.k === "necro" && s.flower.k === "black", n: "Till Death Do Us 🖤🥀" },
+    { if: s => s.cls.k === "baddie" && s.look.k === "pinkbaddie", n: "Certified Baddie 💅🔥" },
+    { if: s => s.ride.k === "back" && s.love.k === "touch", n: "Ride or Die 🏍️❤️" },
+    { if: s => s.food.k === "chef" && s.date.k === "cook", n: "Feed Me Forever 🍳" },
+    { if: s => s.loot.k === "tf" && s.cls.k === "protag", n: "Did Someone Say Thunderfury 🌩️" },
+  ];
   const SPICE_ICON = ["🌱", "🌶️", "🔥"];
-  const RARITY_LABEL = { common: "Common", uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary drop" };
+  const RARITY_LABEL = { common: "Common", uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary drop", secret: "✦ Secret unlock" };
 
   const app = document.getElementById("app");
   const inv = document.getElementById("inv");
   const sel = {};
-  let step = 0, lastQuip = "", rolls = 0, drops = [], picked = null, legendFound = false, spice = 0;
+  let step = 0, lastQuip = "", rolls = 0, drops = [], picked = null, legendFound = false, spice = 0, secret = null;
 
   function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
@@ -431,7 +591,8 @@
           ${step > 0 ? `<button class="btn ghost" id="back" style="padding:6px 12px;font-size:13px">← Back</button>` : ""}
         </div>
         <div class="meter"><i style="width:${pct}%"></i></div>
-        <div class="quip" aria-live="polite">${lastQuip ? "› " + esc(lastQuip) : ""}</div>
+        <div class="quip" id="quip" aria-live="polite"></div>
+        ${step > 0 ? metersHTML() : ""}
         <h2>${esc(st.q)}</h2>
         <p class="muted">${esc(st.sub)}</p>
         <div class="opts${st.three ? " three" : ""}">
@@ -444,13 +605,15 @@
         </div>
       </section>`;
     requestAnimationFrame(() => { const m = app.querySelector(".meter i"); if (m) m.style.width = ((step + 0.0001) / STEPS.length * 100) + "%"; });
+    typeQuip(document.getElementById("quip"), lastQuip ? "› " + lastQuip : "");
     app.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
       const o = st.opts[+b.dataset.i];
       sel[st.id] = o;
       lastQuip = o.quip;
+      S.pick(); burstAt(b, 16);
       drawInv();
       step++;
-      if (step >= STEPS.length) { roll(); renderForge(); } else renderStep();
+      if (step >= STEPS.length) { roll(); renderForge(false, true); } else renderStep();
     }));
     const back = document.getElementById("back");
     if (back) back.addEventListener("click", () => { step--; lastQuip = ""; renderStep(); });
@@ -480,11 +643,27 @@
       legendFound = true;
     } else legendFound = false;
     drops = out.sort((a, b) => order(b.r) - order(a.r));
+    // secret unlock from the answer combo (deterministic, always on top)
+    secret = null;
+    for (const c of COMBOS) { if (c.if(s)) { secret = c.n; break; } }
+    if (secret) drops.unshift({ r: "secret", n: secret });
     picked = null;
   }
   function order(r) { return ["common", "uncommon", "rare", "epic", "legendary"].indexOf(r); }
 
-  function renderForge(keepInput) {
+  function renderChest(keepInput) {
+    app.innerHTML = `
+      <section class="stack" style="min-height:300px;align-items:center;justify-content:center;text-align:center">
+        <div class="chest" aria-hidden="true">🎁</div>
+        <h2>Opening…</h2>
+        <p class="muted">Rolling your name drops.</p>
+      </section>`;
+    S.reroll();
+    setTimeout(() => renderForge(keepInput, false), 950);
+  }
+
+  function renderForge(keepInput, animate) {
+    if (animate && !RM) { renderChest(keepInput); return; }
     const prev = keepInput ? (document.getElementById("custom") || {}).value : "";
     app.innerHTML = `
       <section class="stack">
@@ -495,10 +674,11 @@
         <div class="quip">› ${esc(lastQuip)}</div>
         <h2>Your name drops</h2>
         <p class="muted">Tap one to claim it, reroll for new ones, or edit it into whatever you want below.</p>
+        ${secret ? `<div class="banner" style="color:var(--rose);border-color:var(--rose)">💝 Secret unlock! A hidden name just dropped. Only a few answer combos trigger it.</div>` : ""}
         ${legendFound ? `<div class="banner">★ Rare drop! You rolled a 1/128 legendary. Screenshot or it didn't happen.</div>` : ""}
         <div class="names" role="group" aria-label="Name options">
           ${drops.map((d, i) => `
-            <button class="name in" data-i="${i}" data-r="${d.r}" aria-pressed="false" style="animation-delay:${i * 70}ms">
+            <button class="name in" data-i="${i}" data-r="${d.r}" aria-pressed="false" style="animation-delay:${i * 80}ms">
               <span class="r">${RARITY_LABEL[d.r]}</span>
               <span class="n">${esc(d.n)}</span>
             </button>`).join("")}
@@ -523,12 +703,19 @@
       b.setAttribute("aria-pressed", "true");
       picked = drops[+b.dataset.i];
       input.value = picked.n;
+      S.pick(); burstAt(b, 14);
       document.getElementById("err").textContent = "";
     }));
-    document.getElementById("reroll").addEventListener("click", () => { roll(); renderForge(true); });
+    document.getElementById("reroll").addEventListener("click", () => { roll(); renderForge(true, true); });
     document.getElementById("redo").addEventListener("click", () => { step = 0; lastQuip = ""; renderStep(); });
     document.getElementById("lock").addEventListener("click", lock);
     input.addEventListener("keydown", e => { if (e.key === "Enter") lock(); });
+    // reveal flourish
+    if (!RM) {
+      const best = app.querySelector('.name[data-r="secret"], .name[data-r="legendary"], .name[data-r="epic"]');
+      if (best) setTimeout(() => { burstAt(best, 26); S.rare(); }, 260);
+      else S.click();
+    }
   }
 
   function check(name) {
@@ -575,7 +762,7 @@
     ];
     const log = document.getElementById("log");
     const bar = document.getElementById("sm");
-    const fast = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fast = RM;
     let i = 0;
     (function next() {
       if (i >= lines.length) { setTimeout(() => renderDone(name), fast ? 0 : 500); return; }
@@ -584,6 +771,7 @@
       if (c) d.className = c;
       d.textContent = t;
       log.appendChild(d);
+      S.click();
       bar.style.width = (i / lines.length * 100) + "%";
       setTimeout(next, fast ? 30 : 260 + Math.random() * 260);
     })();
@@ -592,7 +780,7 @@
   function renderDone(name) {
     const SHORT = { cls: "Class", biome: "Biome", pet: "Companion", loot: "Loot", ride: "Ride", text: "Texts like", food: "Power-up", flower: "Flower", look: "Aesthetic", date: "Date night", love: "Love language", spice: "Spice" };
     const share = [`Save me as: ${name}`, "", ...STEPS.map(st => `${SHORT[st.id]}: ${sel[st.id].l} ${sel[st.id].e}`)].join("\n");
-    ping(`💘 ${WHO} picked: ${name}`, share, ["tada"]);
+    ping(`\u{1F498} ${WHO} picked: ${name}`, share, ["tada"]);
     const rows = STEPS.map(st => `<dt>${SHORT[st.id]}</dt><dd>${esc(sel[st.id].l)} ${sel[st.id].e}</dd>`).join("");
     const notifs = {
       fast: "u up? (to look at my plants)",
@@ -612,8 +800,9 @@
           <div class="cname">${esc(name)}</div>
           <div class="sub">Added to contacts</div>
           <dl class="sheet">${rows}</dl>
+          ${metersHTML()}
         </div>
-        <p class="muted">Here's how you'll show up on my lock screen:</p>
+        <p class="muted">Screenshot the card above if you want to keep it. Here's how you'll show up on my lock screen:</p>
         <div class="notif">
           <div class="ic" aria-hidden="true">💬</div>
           <div class="body">
@@ -633,6 +822,7 @@
         </div>
         <div class="err" id="copymsg" style="color:var(--r-uncommon)" aria-live="polite"></div>
       </section>`;
+    if (!RM) { burst(innerWidth / 2, innerHeight * 0.34, 44); S.win(); }
     const field = document.getElementById("sharetext");
     const msg = document.getElementById("copymsg");
     document.getElementById("copy").addEventListener("click", () => {
@@ -641,18 +831,29 @@
         navigator.clipboard.writeText(share).then(() => { msg.textContent = "Copied. Now paste it in a text to me."; }, fallback);
       } catch (e) { fallback(); }
     });
-    document.getElementById("change").addEventListener("click", () => { roll(); renderForge(); });
+    document.getElementById("change").addEventListener("click", () => { roll(); renderForge(false, true); });
     document.getElementById("again").addEventListener("click", () => {
       Object.keys(sel).forEach(k => delete sel[k]);
       step = 0; lastQuip = ""; rolls = 0; drawInv(); renderStep();
     });
   }
 
+  // mute toggle (persists per browser)
+  const muteBtn = document.getElementById("mute");
+  function syncMute() { muteBtn.textContent = muted ? "🔇" : "🔊"; }
+  syncMute();
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    try { localStorage.setItem("muted", muted ? "1" : "0"); } catch (e) {}
+    if (!muted) { try { AC && AC.resume && AC.resume(); } catch (e) {} S.click(); }
+    syncMute();
+  });
+
   let opened = false;
   try { opened = sessionStorage.getItem("opened") === "1"; sessionStorage.setItem("opened", "1"); } catch (e) {}
-  if (!opened) ping(`👀 ${WHO} opened her game`, "She's on the start screen.", ["eyes"]);
+  if (!opened) ping(`\u{1F440} ${WHO} opened her game`, "She's on the start screen.", ["eyes"]);
   drawInv();
-  document.getElementById("start").addEventListener("click", () => { step = 0; renderStep(); });
+  document.getElementById("start").addEventListener("click", () => { S.click(); step = 0; renderStep(); });
 })();
 </script>
 
