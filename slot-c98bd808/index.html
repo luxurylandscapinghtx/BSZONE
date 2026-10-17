@@ -1,0 +1,659 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head><body>
+<title>Contact Slot Unlocked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: one narrow RPG "character creation" panel, an inventory strip on top, screens swap inside it. Single dark look on purpose. */
+  :root {
+    --ink: #120e14;
+    --panel: #1b1520;
+    --panel-2: #241c2a;
+    --line: #3a2e40;
+    --bone: #efe6da;
+    --muted: #a99ca8;
+    --gold: #e6b450;
+    --gold-ink: #1a1206;
+    --rose: #e0457b;
+    --r-common: #bdb2ba;
+    --r-uncommon: #73d18f;
+    --r-rare: #6eaaf0;
+    --r-epic: #bb8cf6;
+    --r-legend: #f2c45a;
+    --font-display: "Pirata One", "UnifrakturCook", Georgia, serif;
+    --font-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #2a1a2e 0%, transparent 60%),
+      var(--ink);
+    color: var(--bone);
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 48px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+  /* top bar */
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .tag {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tag b { color: var(--gold); font-weight: 600; }
+  .inv { display: grid; grid-template-columns: repeat(12, 30px); gap: 5px; }
+  .slot {
+    width: 30px; height: 30px; border-radius: 6px;
+    background: var(--panel); border: 1px solid var(--line);
+    display: grid; place-items: center; font-size: 16px;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.25);
+  }
+  .slot.filled { border-color: var(--gold); animation: pop .25s ease-out; }
+  @keyframes pop { from { transform: scale(.7); } to { transform: scale(1); } }
+
+  .panel {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px clamp(18px, 5vw, 36px) 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 2px, transparent 2px 4px);
+  }
+
+  h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.02; }
+  h1 { font-size: clamp(44px, 11vw, 76px); color: var(--bone); }
+  h1 em { font-style: normal; color: var(--gold); }
+  h2 { font-size: clamp(32px, 7vw, 46px); }
+  p { margin: 0; max-width: 60ch; }
+  .lede { color: var(--bone); font-size: 18px; }
+  .muted { color: var(--muted); }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+    font-family: var(--font-mono); font-size: 12px;
+  }
+  .stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: rgba(0,0,0,.18); }
+  .stat span { display: block; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; font-size: 11px; }
+  .stat strong { color: var(--gold); font-size: 15px; font-weight: 600; }
+
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .btn {
+    font-family: var(--font-ui); font-weight: 700; font-size: 16px; letter-spacing: .04em;
+    border-radius: 10px; padding: 13px 20px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--bone);
+    transition: transform .1s, border-color .15s, background .15s;
+  }
+  .btn:hover { border-color: var(--gold); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
+  .btn.primary:hover { background: #f0c468; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.ghost { background: transparent; }
+  :focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+
+  /* quiz */
+  .progress { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .meter { height: 6px; background: rgba(0,0,0,.35); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+  .meter i { display: block; height: 100%; background: var(--gold); width: 0; transition: width .35s ease; }
+  .quip {
+    font-family: var(--font-mono); font-size: 13px; color: var(--rose);
+    min-height: 1.5em;
+  }
+  .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .opts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .opt {
+    text-align: left; background: rgba(0,0,0,.22); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px;
+    min-width: 0; transition: border-color .15s, transform .12s, background .15s;
+  }
+  .opt:hover { border-color: var(--gold); transform: translateY(-2px); background: rgba(230,180,80,.06); }
+  .opt .e { font-size: 26px; line-height: 1; }
+  .opt .l { font-weight: 700; font-size: 16px; }
+  .opt .d { color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .opt[aria-pressed="true"] { border-color: var(--gold); background: rgba(230,180,80,.1); }
+
+  /* forge */
+  .names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .name {
+    text-align: left; border-radius: 10px; padding: 14px; min-width: 0;
+    background: rgba(0,0,0,.25); border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color .15s, background .15s;
+  }
+  .name .n { font-size: 19px; font-weight: 700; overflow-wrap: anywhere; }
+  .name .r { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+  .name[data-r="common"] .r { color: var(--r-common); }
+  .name[data-r="uncommon"] .r { color: var(--r-uncommon); }
+  .name[data-r="rare"] .r { color: var(--r-rare); }
+  .name[data-r="epic"] .r { color: var(--r-epic); }
+  .name[data-r="legendary"] { border-color: var(--r-legend); background: linear-gradient(135deg, rgba(242,196,90,.18), rgba(0,0,0,.25)); }
+  .name[data-r="legendary"] .r { color: var(--r-legend); }
+  .name:hover { border-color: var(--bone); }
+  .name[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold) inset; }
+  .name.in { animation: drop .35s ease-out both; }
+  @keyframes drop { from { opacity: .2; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+  .droprate { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  .banner {
+    font-family: var(--font-mono); font-size: 13px; color: var(--r-legend);
+    border: 1px dashed var(--r-legend); border-radius: 8px; padding: 8px 12px;
+  }
+
+  label { font-weight: 600; font-size: 14px; letter-spacing: .04em; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  input[type="text"] {
+    font: inherit; font-size: 18px; font-weight: 600; color: var(--bone);
+    background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; width: 100%;
+  }
+  input[type="text"]:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(230,180,80,.25); }
+  .err { color: var(--rose); font-size: 14px; min-height: 1.4em; }
+
+  /* save log */
+  .log {
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.8;
+    background: #0b080d; border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; min-height: 220px; color: var(--muted);
+    overflow-x: auto;
+  }
+  .log div { white-space: pre-wrap; animation: drop .25s ease-out both; }
+  .log .ok { color: var(--r-uncommon); }
+  .log .warn { color: var(--gold); }
+
+  /* done */
+  .card {
+    background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  }
+  .avatar {
+    width: 92px; height: 92px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #3b2a44, #1a121e);
+    border: 2px solid var(--gold); display: grid; place-items: center; font-size: 44px;
+  }
+  .card .cname { font-size: clamp(24px, 6vw, 32px); font-weight: 700; overflow-wrap: anywhere; line-height: 1.15; }
+  .card .sub { font-family: var(--font-mono); font-size: 12px; color: var(--r-uncommon); letter-spacing: .1em; text-transform: uppercase; }
+  .sheet {
+    width: 100%; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px;
+    text-align: left; font-size: 14px; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  .sheet dt { color: var(--muted); font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; padding-top: 2px; }
+  .sheet dd { margin: 0; }
+  .notif {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: rgba(239,230,218,.08); border: 1px solid var(--line); border-radius: 16px;
+    padding: 12px 14px; backdrop-filter: blur(6px);
+  }
+  .notif .ic { width: 38px; height: 38px; flex: none; border-radius: 9px; background: var(--r-uncommon); color: #06210f; display: grid; place-items: center; font-weight: 700; }
+  .notif .body { min-width: 0; font-size: 14px; }
+  .notif .top { display: flex; justify-content: space-between; gap: 10px; }
+  .notif .who { font-weight: 700; overflow-wrap: anywhere; }
+  .notif .time { color: var(--muted); font-size: 12px; flex: none; }
+  textarea.copyfield {
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: var(--bone);
+    background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; width: 100%; resize: vertical;
+  }
+  .foot { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-align: center; }
+
+  @media (max-width: 520px) {
+    .opts.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .names { grid-template-columns: minmax(0, 1fr); }
+    .stats { grid-template-columns: minmax(0, 1fr); }
+    .inv { grid-template-columns: repeat(12, 24px); gap: 3px; }
+    .slot { width: 24px; height: 24px; font-size: 13px; border-radius: 5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="tag">Contact slot <b>1 / 1</b> · unlocked</div>
+    <div class="inv" id="inv" aria-label="Inventory"></div>
+  </div>
+
+  <main class="panel" id="app">
+    <!-- intro (rendered at rest so the first frame isn't empty) -->
+    <section class="stack" id="intro">
+      <div class="tag">A short game for <b>Vanessa</b></div>
+      <h1>You've unlocked a <em>contact slot.</em></h1>
+      <p class="lede">I want to save your number. Small problem: there's already a Vanessa in my phone, and two contacts with the same name is how bugs happen.</p>
+      <p class="muted">So you get to forge your own name. Twelve quick questions, then the game rolls you some name drops. Pick one, reroll, or write your own. Whatever you choose is exactly what shows up when you text me.</p>
+      <p class="muted">The last question sets the spice level, so the names only get as cheeky as you want them to.</p>
+      <div class="stats">
+        <div class="stat"><span>Questions</span><strong>12</strong></div>
+        <div class="stat"><span>Rerolls</span><strong>Unlimited</strong></div>
+        <div class="stat"><span>Legendary drop</span><strong>1 / 128</strong></div>
+      </div>
+      <p class="muted" style="font-size:14px">Heads up: I get a notification when you open this and when you finish, with your answers. That's how I take notes.</p>
+      <div class="row">
+        <button class="btn primary" id="start">Begin character creation</button>
+      </div>
+    </section>
+  </main>
+
+  <p class="foot">Made by a guy with strong opinions about drop rates.</p>
+</div>
+
+<script>
+(() => {
+
+  // Push notifications to the owner's phone via ntfy.sh (subscribe to the topic in the ntfy app).
+  const NTFY_TOPIC = "vnessa-aadd8454757261b5";
+  const WHO = "Vanessa #2";
+  function ping(title, message, tags) {
+    try {
+      fetch("https://ntfy.sh/", {
+        method: "POST",
+        body: JSON.stringify({ topic: NTFY_TOPIC, title, message, tags, priority: 4 }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch (e) {}
+  }
+  const STEPS = [
+    { id: "cls", q: "Choose your class", sub: "Every adventurer needs a build.", three: true, opts: [
+      { k: "necro", e: "💀", l: "Necromancer", d: "Dark humor. Laughs at funerals, respectfully.", title: "the Unholy", adj: "Cursed", quip: "Noted. I'll keep the jokes dark and the lights low." },
+      { k: "rogue", e: "🖤", l: "Rogue", d: "Tattoos, piercings, zero apologies.", title: "the Inked", adj: "Inked", quip: "Excellent. Edgy is a valid personality." },
+      { k: "bard", e: "🎧", l: "Bard", d: "Has aux privileges. Earned, not given.", title: "the Loud", adj: "Banger", quip: "Aux cord access: granted. Don't make me regret it." },
+      { k: "druid", e: "🌿", l: "Druid", d: "Keeps plants alive. Suspiciously well.", title: "of the Garden", adj: "Feral", quip: "A woman who can keep a plant alive. Respect." },
+      { k: "protag", e: "⚡", l: "Main Character", d: "Anime protagonist energy. Plot armor included.", title: "the Protagonist", adj: "Plot-Armored", quip: "Opening theme starts playing in the background." },
+      { k: "baddie", e: "💅", l: "Baddie", d: "Lashes done, nails done, fears nothing.", title: "the Baddie", adj: "Glam", quip: "Pink, pretty, and dangerous. The final form." },
+    ]},
+    { id: "biome", q: "Pick your biome", sub: "Where your character respawns.", opts: [
+      { k: "beach", e: "🌊", l: "Beach", d: "Sun, salt, questionable tan lines.", place: "Karamja", quip: "Karamja it is. Bring sunscreen and bananas." },
+      { k: "snow", e: "❄️", l: "Snow", d: "Hoodie season, all year.", place: "Trollheim", quip: "Cold hands, warm heart. Probably." },
+      { k: "both", e: "🌗", l: "Both, by season", d: "Snowboard in January, beach by July.", place: "Every Season", quip: "Balanced, as all things should be." },
+      { k: "inside", e: "🛋️", l: "Indoors, near Wi-Fi", d: "Nature is overrated and has bugs.", place: "the Grand Exchange", quip: "Ping matters more than sunlight. Correct." },
+    ]},
+    { id: "pet", q: "Pick your companion", sub: "They follow you everywhere and judge nobody.", opts: [
+      { k: "big", e: "🐕", l: "Big loyal dog", d: "Ninety pounds of thinking he's a lap dog.", word: "Good Boy", quip: "Correct answer. Big dogs, big hearts." },
+      { k: "small", e: "🐶", l: "Small chaos dog", d: "Eight pounds, eleven pounds of attitude.", word: "Gremlin", quip: "Tiny body, unlimited audacity. Respect." },
+      { k: "wolf", e: "🐺", l: "Wolf", d: "It's a dog with lore.", word: "Wolf", quip: "Lore-accurate dog. Good taste." },
+      { k: "cat", e: "🐈‍⬛", l: "Black cat", d: "Bold choice. I'm listening.", word: "Black Cat", quip: "A cat? Bold, in this economy. Allowed." },
+    ]},
+    { id: "loot", q: "Pick your starting loot", sub: "One item. Choose wisely, there's no Grand Exchange refund.", three: true, opts: [
+      { k: "scim", e: "⚔️", l: "Dragon scimitar", d: "The classic. Specs not included.", word: "Dragon", quip: "Respectable. You've done some Monkey Madness." },
+      { k: "phat", e: "🎉", l: "Blue partyhat", d: "Worth more than most cars.", word: "Partyhat", quip: "Rich. Please don't drop trade it." },
+      { k: "pen", e: "💎", l: "A PEN-grade weapon", d: "Took 400 failstacks and most of your sanity.", word: "PEN", quip: "You enhanced it on the first try? Liar. Impressive liar." },
+      { k: "tf", e: "🌩️", l: "Thunderfury", d: "Did someone say [Thunderfury, Blessed Blade of the Windseeker]?", word: "Thunderfury", quip: "Trade chat will never stop linking it. Neither will you." },
+      { k: "hearth", e: "🪨", l: "Hearthstone", d: "Teleports you home. Thirty-minute cooldown.", word: "Hearthstone", quip: "Instant exit from any bad date. Hopefully not this one." },
+      { k: "chicken", e: "🐔", l: "Rubber chicken", d: "Zero damage. Maximum disrespect.", word: "Rubber Chicken", quip: "Emotional damage is still damage." },
+    ]},
+    { id: "ride", q: "Pick your ride", sub: "For when you show up uninvited.", three: true, opts: [
+      { k: "jdm", e: "🏎️", l: "JDM tuner", d: "Pops and bangs. Neighbors hate you.", word: "Turbo", quip: "Turbo noises: required." },
+      { k: "v8", e: "🚗", l: "American muscle", d: "Can't turn. Doesn't need to.", word: "V8", quip: "Straight lines only. Respect." },
+      { k: "truck", e: "🛻", l: "Lifted truck", d: "Needs a ladder. Worth it.", word: "Lifted", quip: "You'll need a running start to get in." },
+      { k: "sport", e: "🏍️", l: "Sportbike", d: "Fast, loud, terrible in the rain.", word: "Throttle", quip: "Helmet on. Bad decisions at reasonable speeds." },
+      { k: "back", e: "🫶", l: "Back of your bike", d: "Passenger seat. Arms around the rider.", word: "Ride or Die", quip: "Hold on tight. That's a safety rule, not a line. Mostly." },
+      { k: "heated", e: "🔥", l: "Anything with heated seats", d: "Specs don't matter. Butt warmth does.", word: "Toasty", quip: "Honestly the most intelligent answer here." },
+    ]},
+    { id: "text", q: "How do you text?", sub: "Be honest. I'll find out anyway.", opts: [
+      { k: "fast", e: "⚡", l: "Replies in seconds", d: "Phone is basically a body part.", suffix: "(instant reply)", quip: "Fast replies. Dangerous. I like it." },
+      { k: "slow", e: "🐌", l: "3 to 5 business days", d: "Reads it, thinks about it, forgets it.", suffix: "(3–5 business days)", quip: "I'll set my expectations accordingly." },
+      { k: "memes", e: "📎", l: "Memes instead of words", d: "Communicates exclusively in reaction images.", suffix: "(meme dealer)", quip: "Fluent in memes. A true intellectual." },
+      { k: "voice", e: "🎙️", l: "Four-minute voice notes", d: "A whole podcast, every time.", suffix: "(voice notes only)", quip: "I'll listen at 1.5x. Lovingly." },
+    ]},
+    { id: "food", q: "Pick your power-up food", sub: "Restores full HP. Cooked properly, obviously.", opts: [
+      { k: "cafe", e: "☕", l: "Cafecito", d: "Tiny cup. Rocket fuel. No decaf in this house.", word: "Cafecito", quip: "Three of these and you can see through time." },
+      { k: "croq", e: "🥖", l: "Croquetas", d: "A dozen. For yourself. No sharing.", word: "Croqueta", quip: "A croqueta connoisseur. Elite." },
+      { k: "guava", e: "🥐", l: "Pastelitos de guayaba", d: "Flaky, sweet, gone in two bites.", word: "Guava", quip: "Guava and cheese supremacy, confirmed." },
+      { k: "chef", e: "🍳", l: "Whatever you're cooking me", d: "I heard you cook. Prove it.", word: "Hungry", quip: "Challenge accepted. Bring an appetite." },
+    ]},
+    { id: "flower", q: "Pick your flower", sub: "So I know what to show up with.", three: true, opts: [
+      { k: "rose", e: "🌹", l: "Red roses", d: "Classic. Dramatic. Never wrong.", word: "Rose", quip: "Classic romance. A dozen, noted." },
+      { k: "black", e: "🥀", l: "Black roses", d: "Romance, but make it gothic.", word: "Black Rose", quip: "Dark and romantic. Of course you did." },
+      { k: "mariposa", e: "🤍", l: "Mariposa", d: "Cuba's national flower. White, fragrant, a little rebellious.", word: "Mariposa", quip: "Cuba's national flower. I did my homework." },
+      { k: "sun", e: "🌻", l: "Sunflowers", d: "Happy flowers for a happy girl.", word: "Sunflower", quip: "Sunshine in a vase. Noted." },
+      { k: "orchid", e: "🌺", l: "Orchids", d: "Exotic, elegant, a little high maintenance.", word: "Orchid", quip: "Elegant and worth the effort." },
+      { k: "peony", e: "🌸", l: "Peonies", d: "Fluffy, pink, expensive taste.", word: "Peony", quip: "Expensive taste. Saving up already." },
+    ]},
+    { id: "look", q: "Pick your aesthetic", sub: "Main character outfit for the day.", opts: [
+      { k: "darkfem", e: "🖤", l: "Dark feminine", d: "Black lace, red lips, sharp eyeliner.", word: "Dark Feminine", quip: "Dangerous in the best way." },
+      { k: "pinkbaddie", e: "💅", l: "Pink baddie", d: "Nails done, lashes on, glossed up.", word: "Baddie", quip: "Pink and dangerous. The best combo." },
+      { k: "alt", e: "⛓️", l: "Alt girl", d: "Chains, boots, and visible ink.", word: "Alt", quip: "Chains and tattoos. Correct answer." },
+      { k: "beachy", e: "🐚", l: "Beach goddess", d: "Gold jewelry, bikini, salt in the hair.", word: "Beach Goddess", quip: "Golden hour, every hour." },
+    ]},
+    { id: "date", q: "Pick a date night", sub: "Be specific. I'm taking notes.", three: true, opts: [
+      { k: "bike", e: "🏍️", l: "Sunset ride on the back of a bike", d: "Wind, music, no destination.", word: "Sunset Rider", quip: "Helmet's yours. So is the sunset." },
+      { k: "bonfire", e: "🔥", l: "Beach bonfire", d: "Blanket, stars, and too many s'mores.", word: "Bonfire", quip: "Stars and s'mores. Easy yes." },
+      { k: "salsa", e: "💃", l: "Salsa dancing", d: "You lead. Or I try to.", word: "Salsa Partner", quip: "I'll practice. Please be patient with my hips." },
+      { k: "cook", e: "🍳", l: "Cook together", d: "Music on, wine open, someone burns something.", word: "Sous Chef", quip: "I'll cook. You judge. Gently." },
+      { k: "game", e: "🎮", l: "Gaming night", d: "Couch co-op and loud trash talk.", word: "Player 2", quip: "Player 2 has entered the game." },
+      { k: "tattoo", e: "🖋️", l: "Tattoo date", d: "Same shop, same day, new ink.", word: "Ink Buddy", quip: "Matching? Let's not get crazy. Yet." },
+    ]},
+    { id: "love", q: "Pick your love language", sub: "So I do this right.", three: true, opts: [
+      { k: "words", e: "💌", l: "Words", d: "Sweet texts, compliments, little notes.", word: "Sweet Talk", quip: "Good morning texts, coming up." },
+      { k: "time", e: "⏳", l: "Quality time", d: "Phones down, full attention.", word: "Quality Time", quip: "Phones down. You have my full attention." },
+      { k: "touch", e: "🫂", l: "Touch", d: "Hand holding, cuddles, close.", word: "Cuddle Bug", quip: "Hand holding privileges: unlocked." },
+      { k: "gifts", e: "🎁", l: "Gifts", d: "Little things that say I thought of you.", word: "Spoiled", quip: "Little surprises, incoming." },
+      { k: "acts", e: "🧹", l: "Acts of service", d: "Do the dishes and I'm yours.", word: "Taken Care Of", quip: "Dishes done. Car washed. You're welcome." },
+      { k: "all", e: "💯", l: "All of the above", d: "Why choose?", word: "Spoiled", quip: "High maintenance and honest about it. Respect." },
+    ]},
+    { id: "spice", q: "Set the spice level", sub: "Last one. This decides how cheeky your name drops get.", opts: [
+      { k: "mild", e: "🌱", l: "Wholesome", d: "Safe to show your abuela.", lvl: 0, quip: "Abuela-approved. Keeping it classy." },
+      { k: "flirty", e: "🌶️", l: "Flirty", d: "A little wink. Nothing incriminating.", lvl: 1, quip: "A little spice. Noted, and appreciated." },
+      { k: "hot", e: "🔥", l: "Unhinged", d: "Don't let anyone look at your screen.", lvl: 2, quip: "Oh, we're doing this. Okay. Hold my cafecito." },
+      { k: "surprise", e: "🎲", l: "Surprise me", d: "Spice level changes on every reroll.", lvl: -1, quip: "Chaos mode. Every reroll is a gamble." },
+    ]},
+  ];
+
+  // Name templates. r = rarity. Each takes the picked options for every step.
+  const T = [
+    { r: "common",   f: s => `Nessa ${s.cls.title} ${s.cls.e}` },
+    { r: "common",   f: s => `Vanessa ${s.text.suffix}` },
+    { r: "common",   f: s => `Not That Vanessa ${s.pet.e}` },
+    { r: "common",   f: s => `V ${s.cls.e}${s.biome.e}` },
+    { r: "uncommon", f: s => `${s.loot.word} Nessa ${s.biome.e}` },
+    { r: "uncommon", f: s => `Vanessa of ${s.biome.place}` },
+    { r: "uncommon", f: s => `${s.cls.adj} V ${s.pet.e}` },
+    { r: "uncommon", f: s => `${s.ride.word} Vanessa ${s.ride.e}` },
+    { r: "uncommon", f: s => `Nessa & the ${s.pet.word} ${s.pet.e}` },
+    { r: "rare",     f: s => `Nessa.exe ${s.loot.e}` },
+    { r: "rare",     f: s => `V² ${s.cls.e}` },
+    { r: "rare",     f: s => `Vanessa, Patch 2.0 ${s.cls.e}` },
+    { r: "rare",     f: s => `The ${s.cls.adj} One ${s.cls.e}` },
+    { r: "epic",     f: s => `Vanessa (Hardcore Ironwoman) ${s.loot.e}` },
+    { r: "epic",     f: s => `${s.cls.adj} Nessa of ${s.biome.place} ${s.pet.e}` },
+    { r: "epic",     f: s => `Vanessa: Director's Cut 🎬` },
+    { r: "uncommon", f: s => `${s.food.word} Nessa ${s.food.e}` },
+    { r: "uncommon", f: s => `Cubanita ${s.cls.e}🇨🇺` },
+    { r: "rare",     f: s => `Vanessa™ ${s.cls.e}` },
+    { r: "rare",     f: s => `Nessa, Regional Manager 📎` },
+    { r: "epic",     f: s => `Nessa, Limited Edition ${s.biome.e}` },
+    { r: "uncommon", f: s => `${s.flower.word} Nessa ${s.flower.e}` },
+    { r: "uncommon", f: s => `Nessa in Bloom ${s.flower.e}` },
+    { r: "rare",     f: s => `${s.look.word} Nessa ${s.look.e}` },
+    { r: "rare",     f: s => `My ${s.date.word} ${s.date.e}` },
+    { r: "epic",     f: s => `Mariposa Negra 🦋🖤` },
+    { r: "rare", lvl: 1, f: s => `Heartbreaker ${s.flower.e}` },
+    { r: "epic", lvl: 1, f: s => `Nessa, Worth the Wait 🌹` },
+    // flirty (spice 1+)
+    { r: "rare", lvl: 1, f: s => `Trouble ${s.cls.e}😈` },
+    { r: "rare", lvl: 1, f: s => `Cuban Trouble 🇨🇺🔥` },
+    { r: "rare", lvl: 1, f: s => `Nessa, Danger Zone ${s.ride.e}` },
+    { r: "epic", lvl: 1, f: s => `Do Not Answer (Answer) 📵` },
+    { r: "epic", lvl: 1, f: s => `Bad Idea, Good Time 😈` },
+    // unhinged (spice 2)
+    { r: "rare", lvl: 2, f: s => `Inked, Pierced & Dangerous 🖤` },
+    { r: "rare", lvl: 2, f: s => `Nessa (Not Safe For Work) 🔥` },
+    { r: "epic", lvl: 2, f: s => `Dangerous Curves Ahead 🍑` },
+    { r: "epic", lvl: 2, f: s => `That's What She Said 😏` },
+    { r: "epic", lvl: 2, f: s => `Cubanita Caliente 🔥` },
+  ];
+  const LEGENDS = [
+    "Third Age Vanessa ✨",
+    "Vanessa, Final Boss 👑",
+    "PEN Vanessa (Never Failed) 💎",
+    "Gilded Nessa 🏆",
+    "Vanessa, Slayer of Group Chats 🗡️",
+    "Nessa, Mother of Dragons 🐉",
+    "Thunderfury Vanessa 🌩️",
+  ];
+  const SPICE_ICON = ["🌱", "🌶️", "🔥"];
+  const RARITY_LABEL = { common: "Common", uncommon: "Uncommon", rare: "Rare", epic: "Epic", legendary: "Legendary drop" };
+
+  const app = document.getElementById("app");
+  const inv = document.getElementById("inv");
+  const sel = {};
+  let step = 0, lastQuip = "", rolls = 0, drops = [], picked = null, legendFound = false, spice = 0;
+
+  function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  function drawInv() {
+    inv.innerHTML = STEPS.map(st => {
+      const o = sel[st.id];
+      return `<div class="slot${o ? " filled" : ""}" title="${o ? esc(o.l) : "Empty slot"}">${o ? o.e : ""}</div>`;
+    }).join("");
+  }
+
+  function renderStep() {
+    const st = STEPS[step];
+    const pct = (step / STEPS.length) * 100;
+    app.innerHTML = `
+      <section class="stack">
+        <div class="progress">
+          <div class="tag">Question <b>${step + 1}</b> of ${STEPS.length}</div>
+          ${step > 0 ? `<button class="btn ghost" id="back" style="padding:6px 12px;font-size:13px">← Back</button>` : ""}
+        </div>
+        <div class="meter"><i style="width:${pct}%"></i></div>
+        <div class="quip" aria-live="polite">${lastQuip ? "› " + esc(lastQuip) : ""}</div>
+        <h2>${esc(st.q)}</h2>
+        <p class="muted">${esc(st.sub)}</p>
+        <div class="opts${st.three ? " three" : ""}">
+          ${st.opts.map((o, i) => `
+            <button class="opt" data-i="${i}" aria-pressed="${sel[st.id] === o}">
+              <span class="e">${o.e}</span>
+              <span class="l">${esc(o.l)}</span>
+              <span class="d">${esc(o.d)}</span>
+            </button>`).join("")}
+        </div>
+      </section>`;
+    requestAnimationFrame(() => { const m = app.querySelector(".meter i"); if (m) m.style.width = ((step + 0.0001) / STEPS.length * 100) + "%"; });
+    app.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+      const o = st.opts[+b.dataset.i];
+      sel[st.id] = o;
+      lastQuip = o.quip;
+      drawInv();
+      step++;
+      if (step >= STEPS.length) { roll(); renderForge(); } else renderStep();
+    }));
+    const back = document.getElementById("back");
+    if (back) back.addEventListener("click", () => { step--; lastQuip = ""; renderStep(); });
+  }
+
+  function roll() {
+    rolls++;
+    const s = {}; STEPS.forEach(st => s[st.id] = sel[st.id]);
+    spice = sel.spice.lvl < 0 ? Math.floor(Math.random() * 3) : sel.spice.lvl;
+    const pool = T.filter(t => (t.lvl || 0) <= spice);
+    const out = [];
+    const take = i => { const t = pool.splice(i, 1)[0]; out.push({ r: t.r, n: t.f(s).replace(/\s+/g, " ").trim() }); };
+    // guarantee at least one name at the spice level she asked for
+    if (spice > 0) {
+      const hot = pool.map((t, i) => t.lvl === spice ? i : -1).filter(i => i >= 0);
+      take(hot[Math.floor(Math.random() * hot.length)]);
+    }
+    while (out.length < 4 && pool.length) {
+      // weight toward common, like any respectable drop table
+      const w = pool.map(t => ({ common: 6, uncommon: 4, rare: 2.2, epic: 1 }[t.r]));
+      let x = Math.random() * w.reduce((a, b) => a + b, 0), i = 0;
+      while ((x -= w[i]) > 0) i++;
+      take(i);
+    }
+    if (Math.random() < 1 / 128) {
+      out[out.length - 1] = { r: "legendary", n: LEGENDS[Math.floor(Math.random() * LEGENDS.length)] };
+      legendFound = true;
+    } else legendFound = false;
+    drops = out.sort((a, b) => order(b.r) - order(a.r));
+    picked = null;
+  }
+  function order(r) { return ["common", "uncommon", "rare", "epic", "legendary"].indexOf(r); }
+
+  function renderForge(keepInput) {
+    const prev = keepInput ? (document.getElementById("custom") || {}).value : "";
+    app.innerHTML = `
+      <section class="stack">
+        <div class="progress">
+          <div class="tag">Character complete · <b>name drops</b></div>
+          <button class="btn ghost" id="redo" style="padding:6px 12px;font-size:13px">← Redo answers</button>
+        </div>
+        <div class="quip">› ${esc(lastQuip)}</div>
+        <h2>Your name drops</h2>
+        <p class="muted">Tap one to claim it, reroll for new ones, or edit it into whatever you want below.</p>
+        ${legendFound ? `<div class="banner">★ Rare drop! You rolled a 1/128 legendary. Screenshot or it didn't happen.</div>` : ""}
+        <div class="names" role="group" aria-label="Name options">
+          ${drops.map((d, i) => `
+            <button class="name in" data-i="${i}" data-r="${d.r}" aria-pressed="false" style="animation-delay:${i * 70}ms">
+              <span class="r">${RARITY_LABEL[d.r]}</span>
+              <span class="n">${esc(d.n)}</span>
+            </button>`).join("")}
+        </div>
+        <div class="row" style="justify-content:space-between">
+          <button class="btn" id="reroll">🎲 Reroll</button>
+          <span class="droprate">Roll #${rolls} · spice ${SPICE_ICON[spice]} · legendary 1/128</span>
+        </div>
+        <div class="field">
+          <label for="custom">Your contact name (edit freely)</label>
+          <input type="text" id="custom" maxlength="48" autocomplete="off" placeholder="Pick a drop or type your own">
+          <div class="err" id="err" aria-live="polite"></div>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="lock">Save me as this</button>
+        </div>
+      </section>`;
+    const input = document.getElementById("custom");
+    if (prev) input.value = prev;
+    app.querySelectorAll(".name").forEach(b => b.addEventListener("click", () => {
+      app.querySelectorAll(".name").forEach(x => x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      picked = drops[+b.dataset.i];
+      input.value = picked.n;
+      document.getElementById("err").textContent = "";
+    }));
+    document.getElementById("reroll").addEventListener("click", () => { roll(); renderForge(true); });
+    document.getElementById("redo").addEventListener("click", () => { step = 0; lastQuip = ""; renderStep(); });
+    document.getElementById("lock").addEventListener("click", lock);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") lock(); });
+  }
+
+  function check(name) {
+    const n = name.trim();
+    const bare = n.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!n) return "Type a name or tap one of the drops above.";
+    if (bare === "vanessa") return "That one's taken. Plain \"Vanessa\" already lives in this phone. Add literally anything.";
+    if (bare === "nessa" || bare === "v") return "Too short to tell apart at a glance. Add an emoji or a title.";
+    if (n.length > 40) return "Phones cut names off around 40 characters. Trim it a little.";
+    return "";
+  }
+
+  function lock() {
+    const input = document.getElementById("custom");
+    const msg = check(input.value);
+    if (msg) { document.getElementById("err").textContent = msg; input.focus(); return; }
+    renderSaving(input.value.trim().replace(/\s+/g, " "));
+  }
+
+  function renderSaving(name) {
+    app.innerHTML = `
+      <section class="stack">
+        <div class="tag">Writing to contacts…</div>
+        <h2>Saving</h2>
+        <div class="meter"><i id="sm"></i></div>
+        <div class="log" id="log" aria-live="polite"></div>
+      </section>`;
+    const lines = [
+      ["", "> scanning contacts…"],
+      ["warn", "  1 existing Vanessa found. Merge conflict detected."],
+      ["", "> resolving conflict, diplomatically…"],
+      ["ok", "  resolved. Nobody had to fight."],
+      ["", "> running A/B test on your name…"],
+      ["ok", "  your version wins. Landslide."],
+      ["", `> writing name: "${name}"`],
+      ["", `> loading power-up: ${sel.food.l}…`],
+      ["", `> ordering flowers: ${sel.flower.l.toLowerCase()}… 💐`],
+      ["", `> assigning emoji privileges… ${sel.cls.e}${sel.biome.e}${sel.pet.e}`],
+      ["", "> checking meme compatibility…"],
+      ["ok", `  ${90 + Math.floor(Math.random() * 10)}%. Acceptable.`],
+      ["", `> calibrating dark humor tolerance… ${sel.cls.k === "necro" ? "MAX" : "high"}`],
+      ["", "> petting the dog…"],
+      ["ok", "  saved."],
+    ];
+    const log = document.getElementById("log");
+    const bar = document.getElementById("sm");
+    const fast = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let i = 0;
+    (function next() {
+      if (i >= lines.length) { setTimeout(() => renderDone(name), fast ? 0 : 500); return; }
+      const [c, t] = lines[i++];
+      const d = document.createElement("div");
+      if (c) d.className = c;
+      d.textContent = t;
+      log.appendChild(d);
+      bar.style.width = (i / lines.length * 100) + "%";
+      setTimeout(next, fast ? 30 : 260 + Math.random() * 260);
+    })();
+  }
+
+  function renderDone(name) {
+    const SHORT = { cls: "Class", biome: "Biome", pet: "Companion", loot: "Loot", ride: "Ride", text: "Texts like", food: "Power-up", flower: "Flower", look: "Aesthetic", date: "Date night", love: "Love language", spice: "Spice" };
+    const share = [`Save me as: ${name}`, "", ...STEPS.map(st => `${SHORT[st.id]}: ${sel[st.id].l} ${sel[st.id].e}`)].join("\n");
+    ping(`💘 ${WHO} picked: ${name}`, share, ["tada"]);
+    const rows = STEPS.map(st => `<dt>${SHORT[st.id]}</dt><dd>${esc(sel[st.id].l)} ${sel[st.id].e}</dd>`).join("");
+    const notifs = {
+      fast: "u up? (to look at my plants)",
+      slow: "sorry just saw this from tuesday",
+      memes: "sent an image",
+      voice: "🎙️ Voice message · 4:12",
+    };
+    const note = spice === 2 ? "you up? asking for a friend 😏"
+      : spice === 1 ? "made too much food. come help 😈"
+      : notifs[sel.text.k];
+    app.innerHTML = `
+      <section class="stack">
+        <div class="tag">Quest complete</div>
+        <h2>Contact saved</h2>
+        <div class="card">
+          <div class="avatar" aria-hidden="true">${sel.cls.e}</div>
+          <div class="cname">${esc(name)}</div>
+          <div class="sub">Added to contacts</div>
+          <dl class="sheet">${rows}</dl>
+        </div>
+        <p class="muted">Here's how you'll show up on my lock screen:</p>
+        <div class="notif">
+          <div class="ic" aria-hidden="true">💬</div>
+          <div class="body">
+            <div class="top"><span class="who">${esc(name)}</span><span class="time">now</span></div>
+            <div class="muted">${esc(note)}</div>
+          </div>
+        </div>
+        <p class="lede">Your results just got sent to me, so I'm already taking notes. Want to double-check? Copy them below and text them to me too.</p>
+        <div class="field">
+          <label for="sharetext">Your results</label>
+          <textarea id="sharetext" class="copyfield" readonly rows="9">${esc(share)}</textarea>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="copy">Copy my results</button>
+          <button class="btn" id="change">Pick a different name</button>
+          <button class="btn ghost" id="again">Start over</button>
+        </div>
+        <div class="err" id="copymsg" style="color:var(--r-uncommon)" aria-live="polite"></div>
+      </section>`;
+    const field = document.getElementById("sharetext");
+    const msg = document.getElementById("copymsg");
+    document.getElementById("copy").addEventListener("click", () => {
+      const fallback = () => { field.focus(); field.select(); msg.textContent = "Selected. Press copy on your keyboard or long-press to copy."; };
+      try {
+        navigator.clipboard.writeText(share).then(() => { msg.textContent = "Copied. Now paste it in a text to me."; }, fallback);
+      } catch (e) { fallback(); }
+    });
+    document.getElementById("change").addEventListener("click", () => { roll(); renderForge(); });
+    document.getElementById("again").addEventListener("click", () => {
+      Object.keys(sel).forEach(k => delete sel[k]);
+      step = 0; lastQuip = ""; rolls = 0; drawInv(); renderStep();
+    });
+  }
+
+  let opened = false;
+  try { opened = sessionStorage.getItem("opened") === "1"; sessionStorage.setItem("opened", "1"); } catch (e) {}
+  if (!opened) ping(`👀 ${WHO} opened her game`, "She's on the start screen.", ["eyes"]);
+  drawInv();
+  document.getElementById("start").addEventListener("click", () => { step = 0; renderStep(); });
+})();
+</script>
+
+</body></html>
